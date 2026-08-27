@@ -1,69 +1,185 @@
-import Image from "next/image";
+"use client";
+
+import { useMemo, useState } from "react";
+import { useData } from "@/lib/client/DataContext";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { TableWrap, Th, Td } from "@/components/ui/Table";
+import { StatTile } from "@/components/ui/StatTile";
+import { formatCurrency, formatDate, formatPercent } from "@/lib/format";
+
+type Filter = "all" | "pending" | "completed";
 
 export default function Home() {
+  const { data, loading, error } = useData();
+  const [statusFilter, setStatusFilter] = useState<Filter>("all");
+  const [platformFilter, setPlatformFilter] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+
+  const filtered = useMemo(() => {
+    if (!data?.payments) return [];
+
+    return data.payments
+      .filter((txn) => {
+        if (statusFilter === "pending") return txn.status.toLowerCase() === "pending";
+        if (statusFilter === "completed") return txn.status.toLowerCase() === "completed";
+        return true;
+      })
+      .filter((txn) => {
+        if (platformFilter === "all") return true;
+        return txn.platform === platformFilter;
+      })
+      .filter((txn) => {
+        if (!dateFrom) return true;
+        return txn.date >= dateFrom;
+      })
+      .filter((txn) => {
+        if (!dateTo) return true;
+        return txn.date <= dateTo;
+      })
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }, [data, statusFilter, platformFilter, dateFrom, dateTo]);
+
+  if (loading) return <div className="text-sm text-gray-600 dark:text-gray-400">Loading payments…</div>;
+  if (error || !data) return <div className="text-sm text-red-600 dark:text-red-400">{error ?? "Failed to load data"}</div>;
+
+  const { paymentKpis, paymentPlatforms } = data;
+  const feePercent = paymentKpis.totalRevenue > 0 ? (paymentKpis.totalFees / paymentKpis.totalRevenue) * 100 : 0;
+
+  const platforms = ["all", ...Array.from(new Set(data.payments.map((p) => p.platform)))];
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Payments & Invoices</h1>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          {paymentKpis.totalTransactions} transactions across {paymentKpis.platformCount} platforms
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <StatTile label="Total Revenue" value={formatCurrency(paymentKpis.totalRevenue)} tone="good" />
+        <StatTile label="Total Fees" value={formatCurrency(paymentKpis.totalFees)} />
+        <StatTile label="Net Proceeds" value={formatCurrency(paymentKpis.totalNetProceeds)} tone="good" />
+        <StatTile label="Avg Transaction" value={formatCurrency(paymentKpis.avgTransactionValue)} />
+        <StatTile label="Fee Rate" value={formatPercent(feePercent / 100)} />
+      </div>
+
+      <Card className="p-4">
+        <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Platform Breakdown</h2>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {paymentPlatforms.map((platform) => (
+            <div key={platform.platform} className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{platform.platform}</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-white mt-2">{formatCurrency(platform.totalRevenue)}</p>
+              <div className="text-xs text-gray-600 dark:text-gray-400 mt-2 space-y-1">
+                <p>Transactions: {platform.totalTransactions}</p>
+                <p>Avg: {formatCurrency(platform.avgTransactionValue)}</p>
+                <p>Fees: {formatCurrency(platform.totalFees)}</p>
+              </div>
+            </div>
+          ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+      </Card>
+
+      <Card className="p-4">
+        <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Filters</h2>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+          <div>
+            <label className="text-sm text-gray-600 dark:text-gray-400 block mb-1">Status</label>
+            <div className="flex flex-wrap gap-2">
+              {(["all", "pending", "completed"] as Filter[]).map((f) => (
+                <Button
+                  key={f}
+                  variant={statusFilter === f ? "primary" : "secondary"}
+                  onClick={() => setStatusFilter(f)}
+                >
+                  {f}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm text-gray-600 dark:text-gray-400 block mb-1">Platform</label>
+            <select
+              value={platformFilter}
+              onChange={(e) => setPlatformFilter(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-white"
+            >
+              {platforms.map((p) => (
+                <option key={p} value={p}>
+                  {p === "all" ? "All Platforms" : p}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-sm text-gray-600 dark:text-gray-400 block mb-1">From Date</label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-white"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+
+          <div>
+            <label className="text-sm text-gray-600 dark:text-gray-400 block mb-1">To Date</label>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-white"
+            />
+          </div>
         </div>
-      </main>
+      </Card>
+
+      <Card className="p-0">
+        <TableWrap>
+          <thead>
+            <tr>
+              <Th>Date</Th>
+              <Th>Platform</Th>
+              <Th>Transaction ID</Th>
+              <Th className="text-right">Amount</Th>
+              <Th className="text-right">Fees</Th>
+              <Th className="text-right">Net Proceeds</Th>
+              <Th>Status</Th>
+              <Th>Payment Method</Th>
+              <Th>Notes</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((txn) => (
+              <tr key={txn.id} className="border-t border-gray-200 dark:border-gray-700">
+                <Td>{formatDate(txn.date)}</Td>
+                <Td className="font-medium">{txn.platform}</Td>
+                <Td className="font-mono text-sm">{txn.transactionId}</Td>
+                <Td className="text-right tabular-nums">{formatCurrency(txn.amount)}</Td>
+                <Td className="text-right tabular-nums text-yellow-600 dark:text-yellow-400">{formatCurrency(txn.fees)}</Td>
+                <Td className="text-right tabular-nums font-medium text-green-600 dark:text-green-400">{formatCurrency(txn.netProceeds)}</Td>
+                <Td>
+                  <Badge tone={txn.status.toLowerCase() === "completed" ? "good" : "default"}>{txn.status}</Badge>
+                </Td>
+                <Td className="text-sm text-gray-600 dark:text-gray-400">{txn.paymentMethod || "—"}</Td>
+                <Td className="text-sm text-gray-600 dark:text-gray-400">{txn.notes || "—"}</Td>
+              </tr>
+            ))}
+            {filtered.length === 0 && (
+              <tr>
+                <Td className="text-gray-600 dark:text-gray-400" colSpan={9}>
+                  No transactions in this view.
+                </Td>
+              </tr>
+            )}
+          </tbody>
+        </TableWrap>
+      </Card>
     </div>
   );
 }
