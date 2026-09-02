@@ -126,11 +126,10 @@ export default function Home() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <img
-            src="/logo.svg"
-            alt="FLAIR Logo"
-            className="h-14 w-auto"
-          />
+          <div className="bg-yellow-400 px-4 py-3 rounded-lg flex flex-col items-center justify-center" style={{ minWidth: "120px" }}>
+            <div className="text-2xl font-black italic text-black" style={{ lineHeight: "1", letterSpacing: "-2px" }}>FLAIR</div>
+            <div className="text-xs font-bold text-black tracking-wider">INVOICE & PAYMENTS</div>
+          </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Payments Needing Settlement</h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
