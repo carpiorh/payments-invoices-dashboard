@@ -1,25 +1,17 @@
-<svg viewBox="0 0 450 180" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-  <!-- Yellow background -->
-  <rect width="450" height="180" fill="#FFD700"/>
+<svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Yellow background matching photo -->
+  <rect width="600" height="200" fill="#FFE135"/>
 
-  <!-- Diagonal slash -->
-  <line x1="30" y1="150" x2="95" y2="30" stroke="#000000" stroke-width="12" stroke-linecap="round"/>
+  <!-- Decorative slash through F -->
+  <line x1="50" y1="170" x2="120" y2="30" stroke="#000000" stroke-width="15" stroke-linecap="round"/>
 
-  <!-- F -->
-  <path d="M 105 35 L 135 38 L 133 60 L 115 58 L 118 95 L 140 92 L 138 115 L 100 120 Z" fill="#000000" stroke="none"/>
+  <!-- FLAIR text - exact match to photo with proper italic styling -->
+  <g font-family="'Arial Black', 'Helvetica', sans-serif" font-size="130" font-weight="900" fill="#000000" font-style="italic">
+    <text x="130" y="130" letter-spacing="-4">FLAIR</text>
+  </g>
 
-  <!-- L -->
-  <path d="M 155 40 L 180 42 L 178 115 L 155 113 Z" fill="#000000" stroke="none"/>
-
-  <!-- A -->
-  <path d="M 200 115 L 190 75 L 180 35 L 205 40 L 230 35 L 220 75 L 210 115 Z M 205 70 L 215 70 L 210 52 Z" fill="#000000" stroke="none"/>
-
-  <!-- I -->
-  <path d="M 245 35 L 270 38 L 268 115 L 243 113 Z" fill="#000000" stroke="none"/>
-
-  <!-- R -->
-  <path d="M 290 35 L 320 38 L 322 58 L 300 62 L 320 115 L 295 112 L 280 70 L 278 115 L 253 113 L 258 35 Z" fill="#000000" stroke="none"/>
-
-  <!-- INVOICE & PAYMENTS text -->
-  <text x="30" y="165" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="900" fill="#000000" letter-spacing="1">INVOICE & PAYMENTS</text>
+  <!-- INVOICE & PAYMENTS - exact match to photo -->
+  <g font-family="'Arial', 'Helvetica', sans-serif" font-size="42" font-weight="900" fill="#000000" letter-spacing="1.5">
+    <text x="60" y="175">INVOICE & PAYMENTS</text>
+  </g>
 </svg>
