@@ -27,10 +27,18 @@ async function loadPayments(): Promise<PaymentTransaction[]> {
         const invoiceAmount = num(row[6]); // Column G: Invoice Amount
         const totalPaid = num(row[9]); // Column J: Total Paid
         const balance = num(row[11]); // Column L: Balance (calculated)
-        const statusStr = str(row[13]); // Column N: Status (calculated)
+        const statusStr = str(row[13]).toLowerCase(); // Column N: Status (calculated)
 
         // Only include invoices with outstanding balance (unpaid/partially paid)
         if (balance > 0 && invoiceAmount > 0) {
+          // Determine status - check for both emoji and text versions
+          let status = "Pending";
+          if (statusStr.includes("overdue") || statusStr.includes("🔴")) {
+            status = "Overdue";
+          } else if (statusStr.includes("partial") || statusStr.includes("🔄")) {
+            status = "Pending"; // Partial is treated as Pending
+          }
+
           allTransactions.push({
             id: `${id}`,
             date: parseDate(row[4]), // Column E: Invoice Date
@@ -38,7 +46,7 @@ async function loadPayments(): Promise<PaymentTransaction[]> {
             transactionId: str(row[1]), // Column B: Invoice Number
             amount: invoiceAmount,
             currency: "USD",
-            status: statusStr.includes("Overdue") ? "Overdue" : "Pending",
+            status: status,
             fees: 0,
             netProceeds: balance, // Show the balance owed as "net proceeds"
             paymentMethod: "",
