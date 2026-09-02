@@ -13,7 +13,7 @@ type Filter = "all" | "pending" | "completed";
 
 export default function Home() {
   const { data, loading, error } = useData();
-  const [statusFilter, setStatusFilter] = useState<Filter>("all");
+  const [statusFilter, setStatusFilter] = useState<Filter>("pending");
   const [platformFilter, setPlatformFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -53,18 +53,28 @@ export default function Home() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Payments & Invoices</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Payments Needing Settlement</h1>
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          {paymentKpis.totalTransactions} transactions across {paymentKpis.platformCount} platforms
+          {paymentKpis.pendingCount} pending + {filtered.filter((t) => t.status.toLowerCase() === "overdue").length} overdue
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <StatTile label="Total Revenue" value={formatCurrency(paymentKpis.totalRevenue)} tone="good" />
-        <StatTile label="Total Fees" value={formatCurrency(paymentKpis.totalFees)} />
-        <StatTile label="Net Proceeds" value={formatCurrency(paymentKpis.totalNetProceeds)} tone="good" />
-        <StatTile label="Avg Transaction" value={formatCurrency(paymentKpis.avgTransactionValue)} />
-        <StatTile label="Fee Rate" value={formatPercent(feePercent / 100)} />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatTile
+          label="Pending Payments"
+          value={formatCurrency(filtered.filter((t) => t.status.toLowerCase() === "pending").reduce((s, t) => s + t.amount, 0))}
+          tone="good"
+        />
+        <StatTile
+          label="Overdue Payments"
+          value={formatCurrency(filtered.filter((t) => t.status.toLowerCase() === "overdue").reduce((s, t) => s + t.amount, 0))}
+        />
+        <StatTile
+          label="Total to Settle"
+          value={formatCurrency(filtered.reduce((s, t) => s + t.amount, 0))}
+          tone="good"
+        />
+        <StatTile label="Count" value={String(filtered.length)} />
       </div>
 
       <Card className="p-4">
@@ -90,13 +100,13 @@ export default function Home() {
           <div>
             <label className="text-sm text-gray-600 dark:text-gray-400 block mb-1">Status</label>
             <div className="flex flex-wrap gap-2">
-              {(["all", "pending", "completed"] as Filter[]).map((f) => (
+              {(["pending", "all"] as Filter[]).map((f) => (
                 <Button
                   key={f}
                   variant={statusFilter === f ? "primary" : "secondary"}
                   onClick={() => setStatusFilter(f)}
                 >
-                  {f}
+                  {f === "pending" ? "Pending & Overdue" : "All"}
                 </Button>
               ))}
             </div>
