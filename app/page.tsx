@@ -10,9 +10,14 @@ import { StatTile } from "@/components/ui/StatTile";
 import { formatCurrency, formatDate, formatPercent } from "@/lib/format";
 
 type Filter = "all" | "pending" | "completed";
+type ViewMode = "overview" | "channel";
+
+const PLATFORMS = ["Shopify Main", "Amazon US", "Amazon UK", "Shopify NL", "Shopify UK"];
 
 export default function Home() {
   const { data, loading, error } = useData();
+  const [viewMode, setViewMode] = useState<ViewMode>("overview");
+  const [selectedChannel, setSelectedChannel] = useState(PLATFORMS[0]);
   const [statusFilter, setStatusFilter] = useState<Filter>("pending");
   const [platformFilter, setPlatformFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
@@ -21,6 +26,11 @@ export default function Home() {
   const filtered = useMemo(() => {
     if (!data?.payments) return [];
 
+    let platform = platformFilter;
+    if (viewMode === "channel") {
+      platform = selectedChannel;
+    }
+
     return data.payments
       .filter((txn) => {
         if (statusFilter === "pending") return ["pending", "overdue"].includes(txn.status.toLowerCase());
@@ -28,8 +38,8 @@ export default function Home() {
         return true;
       })
       .filter((txn) => {
-        if (platformFilter === "all") return true;
-        return txn.platform === platformFilter;
+        if (platform === "all") return true;
+        return txn.platform === platform;
       })
       .filter((txn) => {
         if (!dateFrom) return true;
@@ -40,7 +50,7 @@ export default function Home() {
         return txn.date <= dateTo;
       })
       .sort((a, b) => b.date.localeCompare(a.date));
-  }, [data, statusFilter, platformFilter, dateFrom, dateTo]);
+  }, [data, statusFilter, platformFilter, dateFrom, dateTo, viewMode, selectedChannel]);
 
   if (loading) return <div className="text-sm text-gray-600 dark:text-gray-400">Loading payments…</div>;
   if (error || !data) return <div className="text-sm text-red-600 dark:text-red-400">{error ?? "Failed to load data"}</div>;
@@ -55,9 +65,33 @@ export default function Home() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Payments Needing Settlement</h1>
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          {paymentKpis.pendingCount} pending + {filtered.filter((t) => t.status.toLowerCase() === "overdue").length} overdue
+          {viewMode === "channel" ? `${selectedChannel} Channel` : "All Channels"}
         </p>
       </div>
+
+      <Card className="p-4">
+        <h2 className="font-semibold text-gray-900 dark:text-white mb-4">View by Channel</h2>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={viewMode === "overview" ? "primary" : "secondary"}
+            onClick={() => setViewMode("overview")}
+          >
+            Overview (All)
+          </Button>
+          {PLATFORMS.map((platform) => (
+            <Button
+              key={platform}
+              variant={viewMode === "channel" && selectedChannel === platform ? "primary" : "secondary"}
+              onClick={() => {
+                setViewMode("channel");
+                setSelectedChannel(platform);
+              }}
+            >
+              {platform}
+            </Button>
+          ))}
+        </div>
+      </Card>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile
