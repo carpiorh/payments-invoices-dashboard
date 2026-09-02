@@ -23,7 +23,7 @@ export default function Home() {
 
     return data.payments
       .filter((txn) => {
-        if (statusFilter === "pending") return txn.status.toLowerCase() === "pending";
+        if (statusFilter === "pending") return ["pending", "overdue"].includes(txn.status.toLowerCase());
         if (statusFilter === "completed") return txn.status.toLowerCase() === "completed";
         return true;
       })
