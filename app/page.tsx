@@ -127,9 +127,9 @@ export default function Home() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <img
-            src="/logo.png"
+            src="/Logo.png"
             alt="FLAIR Logo"
-            className="h-16 w-auto"
+            className="h-20 w-auto"
           />
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Payments Needing Settlement</h1>

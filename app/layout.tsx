@@ -19,7 +19,20 @@ export const metadata: Metadata = {
   title: "FLAIR - Payments & Invoices",
   description: "Multi-platform payment and invoice tracking",
   icons: {
-    icon: "/favicon.png",
+    icon: [
+      {
+        url: "/Favicon.png",
+        sizes: "500x500",
+        type: "image/png",
+      },
+      {
+        url: "/Favicon.png",
+        sizes: "any",
+        type: "image/png",
+      },
+    ],
+    shortcut: "/Favicon.png",
+    apple: "/Favicon.png",
   },
 };
 
