@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import { useData } from "@/lib/client/DataContext";
+import { usePaymentProofs } from "@/lib/client/PaymentProofContext";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -16,12 +17,72 @@ const PLATFORMS = ["Shopify Main", "Amazon US", "Amazon UK", "Shopify NL", "Shop
 
 export default function Home() {
   const { data, loading, error } = useData();
+  const { addProof } = usePaymentProofs();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [viewMode, setViewMode] = useState<ViewMode>("overview");
   const [selectedChannel, setSelectedChannel] = useState(PLATFORMS[0]);
   const [statusFilter, setStatusFilter] = useState<Filter>("pending");
   const [platformFilter, setPlatformFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [uploadingInvoice, setUploadingInvoice] = useState<string | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split("T")[0]);
+  const [paymentNotes, setPaymentNotes] = useState("");
+
+  const handleFileUpload = async (invoiceId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!paymentAmount || !paymentDate) {
+      alert("Please enter payment amount and date first");
+      return;
+    }
+
+    setUploadingInvoice(invoiceId);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("platform", viewMode === "channel" ? selectedChannel : "Unknown");
+      formData.append("invoiceNumber", invoiceId);
+      formData.append("date", paymentDate);
+
+      const response = await fetch("/api/drive/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Upload failed");
+      }
+
+      const { fileId, fileName, fileUrl } = await response.json();
+
+      addProof(invoiceId, {
+        type: "drive",
+        fileId,
+        fileName,
+        fileUrl,
+        amount: parseFloat(paymentAmount),
+        date: paymentDate,
+        notes: paymentNotes,
+        url: fileUrl,
+        uploadedBy: "File Upload",
+      });
+
+      alert("Payment proof uploaded successfully");
+      setPaymentAmount("");
+      setPaymentNotes("");
+      setPaymentDate(new Date().toISOString().split("T")[0]);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Upload failed");
+    } finally {
+      setUploadingInvoice(null);
+    }
+  };
 
   const filtered = useMemo(() => {
     if (!data?.payments) return [];
@@ -223,6 +284,68 @@ export default function Home() {
             )}
           </tbody>
         </TableWrap>
+      </Card>
+
+      <Card className="p-4">
+        <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Upload Payment Proof</h2>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div>
+              <label className="text-sm text-gray-600 dark:text-gray-400 block mb-1">Payment Amount</label>
+              <input
+                type="number"
+                value={paymentAmount}
+                onChange={(e) => setPaymentAmount(e.target.value)}
+                placeholder="0.00"
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-gray-600 dark:text-gray-400 block mb-1">Payment Date</label>
+              <input
+                type="date"
+                value={paymentDate}
+                onChange={(e) => setPaymentDate(e.target.value)}
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-gray-600 dark:text-gray-400 block mb-1">Notes (Optional)</label>
+              <input
+                type="text"
+                value={paymentNotes}
+                onChange={(e) => setPaymentNotes(e.target.value)}
+                placeholder="Wire transfer, Check #..."
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-white"
+              />
+            </div>
+          </div>
+          <div className="rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 p-4 text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+              Click below to upload a payment proof (Invoice #, then select file)
+            </p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {filtered.map((txn) => (
+                <div key={txn.id}>
+                  <Button
+                    variant="secondary"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingInvoice === txn.id || !paymentAmount || !paymentDate}
+                  >
+                    {uploadingInvoice === txn.id ? "Uploading..." : txn.transactionId}
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    onChange={(e) => handleFileUpload(txn.id, e)}
+                    accept="image/*,.pdf"
+                    className="hidden"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </Card>
     </div>
   );
