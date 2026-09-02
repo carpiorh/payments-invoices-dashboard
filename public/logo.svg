@@ -1,27 +1,41 @@
-<svg viewBox="0 0 500 140" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 500 300" xmlns="http://www.w3.org/2000/svg">
   <!-- Yellow background -->
-  <rect width="500" height="140" fill="#FFEB3B"/>
+  <rect width="500" height="300" fill="#FFD700"/>
 
-  <!-- FLAIR text with italic styling -->
-  <g>
-    <!-- F -->
-    <path d="M 60 50 L 85 50 L 88 58 L 65 65 L 70 75 L 90 68 L 95 80 L 75 85 L 88 110 L 68 110 L 65 100 L 50 105 Z" fill="#000" />
+  <!-- FLAIR text with italic bold styling -->
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+      .flair {
+        font-family: 'Arial Black', 'Helvetica', sans-serif;
+        font-size: 140px;
+        font-weight: 900;
+        fill: #000;
+        font-style: italic;
+        letter-spacing: -8px;
+        transform: skewX(-15deg);
+      }
+      .subtitle {
+        font-family: 'Arial', 'Helvetica', sans-serif;
+        font-size: 48px;
+        font-weight: 900;
+        fill: #000;
+        letter-spacing: 3px;
+        transform: skewX(-10deg);
+      }
+    </style>
+  </defs>
 
-    <!-- L -->
-    <path d="M 110 50 L 135 55 L 133 65 L 118 62 L 115 110 L 95 108 L 100 50 Z" fill="#000" />
+  <!-- Decorative slash line through FLAIR -->
+  <line x1="50" y1="180" x2="120" y2="80" stroke="#000" stroke-width="16" stroke-linecap="round"/>
 
-    <!-- A -->
-    <path d="M 150 110 L 140 75 L 130 50 L 155 55 L 175 50 L 165 75 L 155 110 Z M 148 80 L 158 80 L 153 65 Z" fill="#000" />
-
-    <!-- I -->
-    <path d="M 190 50 L 215 52 L 213 110 L 188 108 Z" fill="#000" />
-
-    <!-- R -->
-    <path d="M 235 50 L 260 52 L 262 65 L 245 70 L 265 110 L 243 108 L 228 75 L 225 110 L 205 108 L 210 50 Z" fill="#000" />
+  <!-- FLAIR main text -->
+  <g transform="translate(80, 180)">
+    <text x="0" y="0" class="flair">FLAIR</text>
   </g>
 
-  <!-- INVOICE & PAYMENTS text -->
-  <g font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#000">
-    <text x="50" y="135" letter-spacing="4">INVOICE & PAYMENTS</text>
+  <!-- INVOICE & PAYMENTS subtitle -->
+  <g transform="translate(50, 240)">
+    <text x="0" y="0" class="subtitle">INVOICE & PAYMENTS</text>
   </g>
 </svg>
