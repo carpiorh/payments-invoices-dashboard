@@ -18,7 +18,7 @@ const PLATFORMS = ["Shopify Main", "Amazon US", "Amazon UK", "Shopify NL", "Shop
 export default function Home() {
   const { data, loading, error } = useData();
   const { addProof } = usePaymentProofs();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputsRef = useRef<Map<string, HTMLInputElement>>(new Map());
 
   const [viewMode, setViewMode] = useState<ViewMode>("overview");
   const [selectedChannel, setSelectedChannel] = useState(PLATFORMS[0]);
@@ -76,7 +76,8 @@ export default function Home() {
       setPaymentAmount("");
       setPaymentNotes("");
       setPaymentDate(new Date().toISOString().split("T")[0]);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      const input = fileInputsRef.current?.get(invoiceId);
+      if (input) input.value = "";
     } catch (error) {
       alert(error instanceof Error ? error.message : "Upload failed");
     } finally {
@@ -329,13 +330,15 @@ export default function Home() {
                 <div key={txn.id}>
                   <Button
                     variant="secondary"
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => fileInputsRef.current?.get(txn.id)?.click()}
                     disabled={uploadingInvoice === txn.id || !paymentAmount || !paymentDate}
                   >
                     {uploadingInvoice === txn.id ? "Uploading..." : txn.transactionId}
                   </Button>
                   <input
-                    ref={fileInputRef}
+                    ref={(el) => {
+                      if (el) fileInputsRef.current?.set(txn.id, el);
+                    }}
                     type="file"
                     onChange={(e) => handleFileUpload(txn.id, e)}
                     accept="image/*,.pdf"
