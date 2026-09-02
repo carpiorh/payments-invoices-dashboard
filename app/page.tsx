@@ -124,11 +124,20 @@ export default function Home() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Payments Needing Settlement</h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          {viewMode === "channel" ? `${selectedChannel} Channel` : "All Channels"}
-        </p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <img
+            src="/logo.svg"
+            alt="FLAIR Logo"
+            className="h-14 w-auto"
+          />
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Payments Needing Settlement</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {viewMode === "channel" ? `${selectedChannel} Channel` : "All Channels"}
+            </p>
+          </div>
+        </div>
       </div>
 
       <Card className="p-4">
@@ -164,6 +173,7 @@ export default function Home() {
         <StatTile
           label="Overdue Payments"
           value={formatCurrency(filtered.filter((t) => t.status.toLowerCase() === "overdue").reduce((s, t) => s + t.amount, 0))}
+          tone="critical"
         />
         <StatTile
           label="Total to Settle"
@@ -262,7 +272,14 @@ export default function Home() {
           </thead>
           <tbody>
             {filtered.map((txn) => (
-              <tr key={txn.id} className="border-t border-gray-200 dark:border-gray-700">
+              <tr
+                key={txn.id}
+                className={`border-t border-gray-200 dark:border-gray-700 ${
+                  txn.status.toLowerCase() === "overdue"
+                    ? "bg-red-50 dark:bg-red-950/20"
+                    : ""
+                }`}
+              >
                 <Td>{formatDate(txn.date)}</Td>
                 <Td className="font-medium">{txn.platform}</Td>
                 <Td className="font-mono text-sm">{txn.transactionId}</Td>
@@ -270,10 +287,24 @@ export default function Home() {
                 <Td className="text-right tabular-nums text-yellow-600 dark:text-yellow-400">{formatCurrency(txn.fees)}</Td>
                 <Td className="text-right tabular-nums font-medium text-green-600 dark:text-green-400">{formatCurrency(txn.netProceeds)}</Td>
                 <Td>
-                  <Badge tone={txn.status.toLowerCase() === "completed" ? "good" : "default"}>{txn.status}</Badge>
+                  <Badge
+                    tone={
+                      txn.status.toLowerCase() === "completed"
+                        ? "good"
+                        : txn.status.toLowerCase() === "overdue"
+                        ? "critical"
+                        : "default"
+                    }
+                  >
+                    {txn.status}
+                  </Badge>
                 </Td>
-                <Td className="text-sm text-gray-600 dark:text-gray-400">{txn.paymentMethod || "—"}</Td>
-                <Td className="text-sm text-gray-600 dark:text-gray-400">{txn.notes || "—"}</Td>
+                <Td className={`text-sm ${txn.status.toLowerCase() === "overdue" ? "text-red-600 dark:text-red-400 font-semibold" : "text-gray-600 dark:text-gray-400"}`}>
+                  {txn.paymentMethod || "—"}
+                </Td>
+                <Td className={`text-sm ${txn.status.toLowerCase() === "overdue" ? "text-red-600 dark:text-red-400 font-semibold" : "text-gray-600 dark:text-gray-400"}`}>
+                  {txn.notes || "—"}
+                </Td>
               </tr>
             ))}
             {filtered.length === 0 && (

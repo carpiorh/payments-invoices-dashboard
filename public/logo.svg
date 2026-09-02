@@ -1,0 +1,27 @@
+<svg viewBox="0 0 500 140" xmlns="http://www.w3.org/2000/svg">
+  <!-- Yellow background -->
+  <rect width="500" height="140" fill="#FFEB3B"/>
+
+  <!-- FLAIR text with italic styling -->
+  <g>
+    <!-- F -->
+    <path d="M 60 50 L 85 50 L 88 58 L 65 65 L 70 75 L 90 68 L 95 80 L 75 85 L 88 110 L 68 110 L 65 100 L 50 105 Z" fill="#000" />
+
+    <!-- L -->
+    <path d="M 110 50 L 135 55 L 133 65 L 118 62 L 115 110 L 95 108 L 100 50 Z" fill="#000" />
+
+    <!-- A -->
+    <path d="M 150 110 L 140 75 L 130 50 L 155 55 L 175 50 L 165 75 L 155 110 Z M 148 80 L 158 80 L 153 65 Z" fill="#000" />
+
+    <!-- I -->
+    <path d="M 190 50 L 215 52 L 213 110 L 188 108 Z" fill="#000" />
+
+    <!-- R -->
+    <path d="M 235 50 L 260 52 L 262 65 L 245 70 L 265 110 L 243 108 L 228 75 L 225 110 L 205 108 L 210 50 Z" fill="#000" />
+  </g>
+
+  <!-- INVOICE & PAYMENTS text -->
+  <g font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#000">
+    <text x="50" y="135" letter-spacing="4">INVOICE & PAYMENTS</text>
+  </g>
+</svg>
